@@ -1,3 +1,1 @@
 web: node index.js
-pair: node pair.js
-worker: node worker.js
