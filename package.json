@@ -22,6 +22,7 @@
     "crypto-digest-sync": "^1.0.0",
     "crypto-js": "latest",
     "dotenv": "^16.4.5",
+    "socket.io": "^4.7.2",
     "express": "^4.18.2",
     "fs-extra": "^11.2.0",
     "jimp": "^0.16.1",
