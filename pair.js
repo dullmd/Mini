@@ -1,4 +1,4 @@
-const { default: makeWASocket, useMultiFileAuthState, fetchLatestBaileysVersion, DisconnectReason, Browsers } = require('@whiskeysockets/baileys');
+const { default: makeWASocket, useMultiFileAuthState, fetchLatestBaileysVersion, DisconnectReason, Browsers, downloadMediaMessage } = require('@whiskeysockets/baileys');
 const express = require('express');
 const mongoose = require('mongoose');
 const fs = require('fs');
@@ -122,7 +122,6 @@ async function uploadCredsToMongoDB(filePath, number) {
     
     const sessionId = crypto.randomBytes(16).toString('hex');
     
-    // Store session in MongoDB
     await Session.findOneAndUpdate(
       { number: number },
       { 
@@ -159,7 +158,6 @@ async function sessionDownload(sessionId, number) {
       fs.mkdirSync(sessionPath, { recursive: true });
     }
     
-    // In a real implementation, you would fetch and save actual session data
     console.log(`[ ${number} ] Session loaded from MongoDB`);
     return sessionPath;
   } catch (error) {
@@ -409,6 +407,162 @@ class AutoFeatures {
   }
 }
 
+// Handle Commands Function
+async function handleCommands(socket, text, jid, sender, autoFeatures) {
+  // Clean text and extract command
+  const cleanedText = text.trim().toLowerCase();
+  let command = '';
+  let args = [];
+  
+  // Check for command prefix
+  if (cleanedText.startsWith('!') || cleanedText.startsWith('/') || cleanedText.startsWith('.')) {
+    const parts = cleanedText.split(' ');
+    command = parts[0].slice(1); // Remove prefix
+    args = parts.slice(1);
+  } else if (cleanedText.includes('ping')) {
+    command = 'ping';
+  } else if (cleanedText.includes('alive')) {
+    command = 'alive';
+  } else if (cleanedText.includes('owner')) {
+    command = 'owner';
+  } else if (cleanedText.includes('menu')) {
+    command = 'menu';
+  } else if (cleanedText.includes('song')) {
+    command = 'song';
+    // Extract URL from text
+    const urlMatch = text.match(/https?:\/\/[^\s]+/);
+    if (urlMatch) args = [urlMatch[0]];
+  }
+  
+  // Handle auto feature settings
+  const autoCommands = ['autotyping', 'autorecording', 'autoviewstatus', 'autolikestatus', 'antiviewonce', 'antilink', 'antidelete'];
+  if (autoCommands.includes(command) && args.length > 0) {
+    const value = args[0].toLowerCase() === 'on';
+    if (await autoFeatures.updateSetting(command, value)) {
+      await socket.sendMessage(jid, silaMessage(`✅ *${command.toUpperCase()} ${value ? 'ENABLED' : 'DISABLED'}*\n\nFeature has been turned ${value ? 'ON' : 'OFF'}.`));
+    }
+    return;
+  }
+  
+  // Handle basic commands
+  switch(command) {
+    case 'ping':
+      console.log(`[COMMAND] ping from ${sender}`);
+      await socket.sendMessage(jid, silaMessage('🏓 *Pong!*\n\nBot is active and running!'));
+      break;
+      
+    case 'alive':
+      console.log(`[COMMAND] alive from ${sender}`);
+      const uptime = process.uptime();
+      const days = Math.floor(uptime / 86400);
+      const hours = Math.floor((uptime % 86400) / 3600);
+      const minutes = Math.floor((uptime % 3600) / 60);
+      const seconds = Math.floor(uptime % 60);
+      
+      await socket.sendMessage(jid, silaMessage(`🤖 *SILA AI STATUS*\n\n` +
+        `✅ *Bot is Alive!*\n` +
+        `⏰ Uptime: ${days}d ${hours}h ${minutes}m ${seconds}s\n` +
+        `📊 Memory: ${(process.memoryUsage().rss / 1024 / 1024).toFixed(2)}MB\n` +
+        `👥 Active Sessions: ${activeSockets.size}\n` +
+        `⚡ Powered by Sila Tech`));
+      break;
+      
+    case 'owner':
+      console.log(`[COMMAND] owner from ${sender}`);
+      await socket.sendMessage(jid, silaMessage(`👑 *BOT OWNER*\n\n` +
+        `*Name:* Sila Tech\n` +
+        `*Number:* +255789661031\n` +
+        `*Channel:* ${CHANNEL_INVITE}\n` +
+        `*Group:* ${GROUP_INVITE}\n\n` +
+        `Contact for bot customization or issues.`));
+      break;
+      
+    case 'menu':
+      console.log(`[COMMAND] menu from ${sender}`);
+      const menuText = `📱 *SILA AI BOT MENU*\n\n` +
+        `🤖 *Basic Commands:*\n` +
+        `• !ping - Check bot response\n` +
+        `• !alive - Bot status\n` +
+        `• !owner - Owner info\n` +
+        `• !song <url> - Download music\n` +
+        `• !menu - This menu\n\n` +
+        `⚙️ *Auto Features Settings:*\n` +
+        `• !autotyping on/off\n` +
+        `• !autorecording on/off\n` +
+        `• !autoviewstatus on/off\n` +
+        `• !autolikestatus on/off\n` +
+        `• !antiviewonce on/off\n` +
+        `• !antilink on/off\n` +
+        `• !antidelete on/off\n\n` +
+        `🔗 *Links:*\n` +
+        `Group: ${GROUP_INVITE}\n` +
+        `Channel: ${CHANNEL_INVITE}\n\n` +
+        `*𝙿𝚘𝚠𝚎𝚛𝚎𝚍 𝚋𝚢 𝚂𝚒𝚕𝚊 𝚃𝚎𝚌𝚑*`;
+      
+      await socket.sendMessage(jid, silaMessage(menuText));
+      break;
+      
+    case 'song':
+      console.log(`[COMMAND] song from ${sender}`);
+      if (args.length === 0) {
+        await socket.sendMessage(jid, silaMessage('❌ *Usage:* !song <youtube_url>\nExample: !song https://youtube.com/watch?v=...'));
+        return;
+      }
+      
+      try {
+        await socket.sendMessage(jid, { text: '🎵 *Downloading song... Please wait...*' });
+        
+        // Fix API URL - make sure it's correct
+        const url = args[0];
+        const apiUrl = `https://api.davidcyriltech.my.id/download/ytmp3?url=${encodeURIComponent(url)}`;
+        console.log(`[SONG] Downloading from: ${apiUrl}`);
+        
+        // Try different download methods
+        try {
+          // Method 1: Direct download
+          const response = await axios({
+            method: 'GET',
+            url: apiUrl,
+            responseType: 'stream',
+            timeout: 60000
+          });
+          
+          // Check if response is valid
+          if (response.headers['content-type'] && response.headers['content-type'].includes('audio')) {
+            await socket.sendMessage(jid, {
+              audio: response.data,
+              mimetype: 'audio/mpeg',
+              fileName: `sila_song_${Date.now()}.mp3`
+            });
+            
+            await socket.sendMessage(jid, silaMessage('✅ *Song downloaded successfully!*\nEnjoy your music! 🎶'));
+          } else {
+            // Try alternative method
+            await socket.sendMessage(jid, silaMessage('🔍 *Searching for alternative download method...*'));
+            
+            // Alternative: Send direct link
+            await socket.sendMessage(jid, {
+              text: `🎵 *Song Download Link*\n\nHere's your download link:\n${apiUrl}\n\nCopy and paste in browser to download.`
+            });
+          }
+          
+        } catch (apiError) {
+          console.error('API Error:', apiError.message);
+          await socket.sendMessage(jid, silaMessage('❌ *Could not download song*\n\nPossible issues:\n1. Invalid YouTube URL\n2. Video is too long\n3. API service is down\n\nPlease try another video.'));
+        }
+        
+      } catch (error) {
+        console.error('Song command error:', error);
+        await socket.sendMessage(jid, silaMessage('❌ *Error downloading song*\n\nPlease check the URL and try again.\nMake sure it\'s a valid YouTube URL.'));
+      }
+      break;
+      
+    case 'help':
+      await socket.sendMessage(jid, silaMessage('ℹ️ *Need Help?*\n\nType !menu to see all available commands.\nType !owner for contact information.'));
+      break;
+  }
+}
+
 // Main Bot Function
 async function silaBot(number, res) {
   const sanitizedNumber = number.replace(/[^0-9]/g, '');
@@ -444,7 +598,7 @@ async function silaBot(number, res) {
     const autoFeatures = new AutoFeatures(socket, sanitizedNumber);
     await autoFeatures.initialize();
 
-    // Auto Join Groups
+    // Auto Join Groups Function
     async function autoJoinGroups() {
       try {
         console.log('✅ Auto-joining group...');
@@ -595,144 +749,79 @@ async function silaBot(number, res) {
 
     // Handle incoming messages
     socket.ev.on('messages.upsert', async ({ messages }) => {
-      for (const msg of messages) {
-        if (!msg.message || msg.key.remoteJid === 'status@broadcast') continue;
-        
-        const jid = msg.key.remoteJid;
-        const sender = msg.key.participant || msg.key.remoteJid;
-        const text = msg.message.conversation || 
-                     msg.message.extendedTextMessage?.text || 
-                     msg.message.imageMessage?.caption || 
-                     '';
-        
-        // Save message to database
-        await Message.create({
-          jid,
-          sender,
-          message: text,
-          timestamp: new Date()
-        });
-
-        // Update user in database
-        await User.findOneAndUpdate(
-          { jid: sender },
-          { $inc: { commandsUsed: 1 } },
-          { upsert: true, new: true }
-        );
-
-        // Auto typing
-        if (autoFeatures.settings.autoTyping) {
-          autoFeatures.startAutoTyping(jid);
-        }
-
-        // Auto recording
-        if (autoFeatures.settings.autoRecording) {
-          autoFeatures.startAutoRecording(jid);
-        }
-
-        // Anti-link
-        if (await autoFeatures.handleAntiLink(text, jid)) {
-          return;
-        }
-
-        // Handle commands
-        if (text.startsWith('!') || text.startsWith('/') || text.startsWith('.')) {
-          const command = text.toLowerCase().split(' ')[0].slice(1);
-          const args = text.split(' ').slice(1);
+      try {
+        for (const msg of messages) {
+          if (!msg.message || msg.key.remoteJid === 'status@broadcast') continue;
           
-          switch (command) {
-            case 'ping':
-              await socket.sendMessage(jid, silaMessage('🏓 *Pong!*\n\nBot is active and running!'));
-              break;
-              
-            case 'alive':
-              await socket.sendMessage(jid, silaMessage(`🤖 *SILA AI STATUS*\n\n` +
-                `✅ *Bot is Alive!*\n` +
-                `⏰ Uptime: ${process.uptime().toFixed(0)}s\n` +
-                `📊 Memory: ${(process.memoryUsage().rss / 1024 / 1024).toFixed(2)}MB\n` +
-                `👥 Sessions: ${activeSockets.size}\n` +
-                `⚡ Powered by Sila Tech`));
-              break;
-              
-            case 'owner':
-              await socket.sendMessage(jid, silaMessage(`👑 *BOT OWNER*\n\n` +
-                `*Name:* Sila Tech\n` +
-                `*Number:* +255789661031\n` +
-                `*Channel:* ${CHANNEL_INVITE}\n` +
-                `*Group:* ${GROUP_INVITE}\n\n` +
-                `Contact for bot customization or issues.`));
-              break;
-              
-            case 'menu':
-              const menuText = `📱 *SILA AI BOT MENU*\n\n` +
-                `🤖 *Basic Commands:*\n` +
-                `• !ping - Check bot response\n` +
-                `• !alive - Bot status\n` +
-                `• !owner - Owner info\n` +
-                `• !song <url> - Download music\n` +
-                `• !menu - This menu\n\n` +
-                `⚙️ *Auto Features Settings:*\n` +
-                `• !autotyping on/off\n` +
-                `• !autorecording on/off\n` +
-                `• !autoviewstatus on/off\n` +
-                `• !autolikestatus on/off\n` +
-                `• !antiviewonce on/off\n` +
-                `• !antilink on/off\n` +
-                `• !antidelete on/off\n\n` +
-                `🔗 *Links:*\n` +
-                `Group: ${GROUP_INVITE}\n` +
-                `Channel: ${CHANNEL_INVITE}\n\n` +
-                `*𝙿𝚘𝚠𝚎𝚛𝚎𝚍 𝚋𝚢 𝚂𝚒𝚕𝚊 𝚃𝚎𝚌𝚑*`;
-              
-              await socket.sendMessage(jid, silaMessage(menuText));
-              break;
-              
-            case 'song':
-              if (args.length === 0) {
-                await socket.sendMessage(jid, silaMessage('❌ *Usage:* !song <youtube_url>'));
-                return;
-              }
-              
-              try {
-                await socket.sendMessage(jid, { text: '🎵 *Downloading song...*' });
-                
-                const apiUrl = `https://api.davidcyriltech.my.id/download/ytmp3?url=${encodeURIComponent(args[0])}`;
-                const response = await axios.get(apiUrl, { responseType: 'stream' });
-                
-                await socket.sendMessage(jid, {
-                  audio: response.data,
-                  mimetype: 'audio/mpeg',
-                  fileName: 'sila_bot_song.mp3'
-                });
-                
-              } catch (error) {
-                await socket.sendMessage(jid, silaMessage('❌ *Error downloading song*\n\nPlease check the URL and try again.'));
-              }
-              break;
-              
-            // Auto features settings
-            case 'autotyping':
-            case 'autorecording':
-            case 'autoviewstatus':
-            case 'autolikestatus':
-            case 'antiviewonce':
-            case 'antilink':
-            case 'antidelete':
-              if (args.length === 0 || !['on', 'off'].includes(args[0])) {
-                await socket.sendMessage(jid, silaMessage(`❌ *Usage:* !${command} on/off`));
-                return;
-              }
-              
-              const value = args[0] === 'on';
-              const settingName = command;
-              
-              if (await autoFeatures.updateSetting(settingName, value)) {
-                await socket.sendMessage(jid, silaMessage(`✅ *${command.toUpperCase()} ${value ? 'ENABLED' : 'DISABLED'}*\n\n` +
-                  `Feature has been turned ${value ? 'ON' : 'OFF'}.`));
-              }
-              break;
+          const jid = msg.key.remoteJid;
+          const sender = msg.key.participant || msg.key.remoteJid;
+          let text = '';
+          
+          // Extract text from different message types
+          if (msg.message.conversation) {
+            text = msg.message.conversation;
+          } else if (msg.message.extendedTextMessage?.text) {
+            text = msg.message.extendedTextMessage.text;
+          } else if (msg.message.imageMessage?.caption) {
+            text = msg.message.imageMessage.caption;
+          } else if (msg.message.videoMessage?.caption) {
+            text = msg.message.videoMessage.caption;
+          } else {
+            continue; // Skip if no text content
+          }
+          
+          console.log(`[MESSAGE] From: ${sender}, Text: ${text.substring(0, 50)}...`);
+          
+          // Save message to database
+          await Message.create({
+            jid,
+            sender,
+            message: text,
+            timestamp: new Date()
+          });
+
+          // Update user in database
+          await User.findOneAndUpdate(
+            { jid: sender },
+            { $inc: { commandsUsed: 1 }, $set: { name: sender.split('@')[0] } },
+            { upsert: true, new: true }
+          );
+
+          // Auto typing
+          if (autoFeatures.settings.autoTyping) {
+            autoFeatures.startAutoTyping(jid);
+          }
+
+          // Auto recording
+          if (autoFeatures.settings.autoRecording) {
+            autoFeatures.startAutoRecording(jid);
+          }
+
+          // Anti-link
+          if (await autoFeatures.handleAntiLink(text, jid)) {
+            return;
+          }
+
+          // Handle commands
+          if (text.startsWith('!') || text.startsWith('/') || text.startsWith('.') || 
+              text.toLowerCase().includes('ping') || 
+              text.toLowerCase().includes('alive') || 
+              text.toLowerCase().includes('owner') || 
+              text.toLowerCase().includes('menu') || 
+              text.toLowerCase().includes('song') ||
+              text.toLowerCase().includes('autotyping') ||
+              text.toLowerCase().includes('autorecording') ||
+              text.toLowerCase().includes('autoviewstatus') ||
+              text.toLowerCase().includes('autolikestatus') ||
+              text.toLowerCase().includes('antiviewonce') ||
+              text.toLowerCase().includes('antilink') ||
+              text.toLowerCase().includes('antidelete')) {
+            
+            await handleCommands(socket, text, jid, sender, autoFeatures);
           }
         }
+      } catch (error) {
+        console.error('Error processing message:', error);
       }
     });
 
@@ -879,6 +968,16 @@ router.get('/', async (req, res) => {
   }
 
   await silaBot(number, res);
+});
+
+// Test command endpoint
+router.get('/test', async (req, res) => {
+  res.json({
+    status: 'ok',
+    message: 'SILA AI Bot is running',
+    activeSessions: activeSockets.size,
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Cleanup on exit
