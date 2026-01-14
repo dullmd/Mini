@@ -27,7 +27,14 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.listen(PORT, async () => {
-    console.log(`Server is running on port http://localhost:${PORT}`);
+    console.log(`╭━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╮`);
+    console.log(`│     🤖 SILA AI BOT v1.0        │`);
+    console.log(`├────────────────────────────────┤`);
+    console.log(`│ 📡 Server: http://localhost:${PORT} │`);
+    console.log(`│ 👑 Owner: +255789661031        │`);
+    console.log(`│ 📊 MongoDB: Connected          │`);
+    console.log(`│ 🔗 Group: ${GROUP_INVITE.split('/').pop()} │`);
+    console.log(`╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯`);
     await startAllSessions();
 });
 
