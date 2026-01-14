@@ -28,12 +28,6 @@
             width: 100%;
             max-width: 800px;
             overflow: hidden;
-            animation: fadeIn 0.8s ease;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
         }
         
         .header {
@@ -41,7 +35,6 @@
             color: white;
             padding: 30px;
             text-align: center;
-            position: relative;
         }
         
         .header h1 {
@@ -51,26 +44,6 @@
             align-items: center;
             justify-content: center;
             gap: 15px;
-        }
-        
-        .header h1 i {
-            font-size: 2rem;
-        }
-        
-        .status-indicator {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            background: #10b981;
-            border-radius: 50%;
-            margin-right: 10px;
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
         }
         
         .content {
@@ -85,23 +58,8 @@
             border-left: 4px solid #4f46e5;
         }
         
-        .section h2 {
-            color: #4f46e5;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
         .input-group {
             margin-bottom: 20px;
-        }
-        
-        .input-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #374151;
-            font-weight: 500;
         }
         
         .phone-input {
@@ -136,10 +94,6 @@
         .btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3);
-        }
-        
-        .btn i {
-            margin-right: 10px;
         }
         
         .codes-display {
@@ -220,11 +174,6 @@
             color: #4f46e5;
         }
         
-        .stat-label {
-            color: #6b7280;
-            font-size: 0.9rem;
-        }
-        
         .instructions {
             background: #f0f9ff;
             padding: 20px;
@@ -242,20 +191,6 @@
             margin-bottom: 8px;
             color: #374151;
         }
-        
-        @media (max-width: 768px) {
-            .content {
-                padding: 20px;
-            }
-            
-            .header h1 {
-                font-size: 2rem;
-            }
-            
-            .stats {
-                flex-direction: column;
-            }
-        }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -265,7 +200,6 @@
             <h1>
                 <i class="fas fa-robot"></i>
                 SILA AI BOT PAIRING
-                <span class="status-indicator"></span>
             </h1>
             <p>Connect your WhatsApp with 8-digit pairing codes</p>
         </div>
@@ -282,7 +216,7 @@
                            pattern="\+[0-9]{10,15}">
                 </div>
                 <button class="btn" onclick="generatePairingCodes()">
-                    <i class="fas fa-key"></i> Generate Pairing Codes
+                    <i class="fas fa-key"></i> Generate 8 Pairing Codes
                 </button>
             </div>
             
@@ -338,10 +272,6 @@
                     <div class="stat-value" id="activeSessions">0</div>
                     <div class="stat-label">Active Sessions</div>
                 </div>
-                <div class="stat-item">
-                    <div class="stat-value" id="totalUsers">0</div>
-                    <div class="stat-label">Total Users</div>
-                </div>
             </div>
         </div>
     </div>
@@ -373,25 +303,18 @@
                     const generatedCodes = document.getElementById('generatedCodes');
                     const sessionInfo = document.getElementById('sessionInfo');
                     
-                    // Store session ID
                     currentSessionId = data.sessionId;
                     
-                    // Display codes
                     generatedCodes.innerHTML = data.codes.map(code => 
                         `<div class="code-box">${code}</div>`
                     ).join('');
                     
-                    // Display session info
                     document.getElementById('sessionIdDisplay').textContent = data.sessionId;
                     sessionInfo.style.display = 'block';
-                    
-                    // Show container
                     codesContainer.style.display = 'block';
                     
-                    // Auto scroll to codes
                     codesContainer.scrollIntoView({ behavior: 'smooth' });
                     
-                    // Start checking session status
                     startSessionStatusCheck();
                     
                 } else {
@@ -415,12 +338,10 @@
                         data.status.charAt(0).toUpperCase() + data.status.slice(1);
                     
                     if (data.status === 'completed' || data.status === 'active') {
-                        // Session is connected
                         document.getElementById('sessionStatus').style.color = '#10b981';
                         document.getElementById('sessionStatus').innerHTML += 
                             ' <i class="fas fa-check-circle"></i>';
                         
-                        // Stop checking
                         clearInterval(statusCheckInterval);
                     }
                 }
@@ -437,7 +358,6 @@
                 if (data.success) {
                     document.getElementById('totalSessions').textContent = data.stats.totalSessions;
                     document.getElementById('activeSessions').textContent = data.stats.activeSessions;
-                    document.getElementById('totalUsers').textContent = data.stats.totalUsers;
                 }
             } catch (error) {
                 console.error('Stats load error:', error);
@@ -450,20 +370,14 @@
             
             statusCheckInterval = setInterval(() => {
                 checkSessionStatus();
-            }, 5000); // Check every 5 seconds
+            }, 5000);
         }
         
-        // Load stats on page load
         window.onload = function() {
             loadStats();
-            // Refresh stats every 30 seconds
             setInterval(loadStats, 30000);
-        };
-        
-        // Auto-focus phone input
-        document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('phoneNumber').focus();
-        });
+        };
     </script>
 </body>
 </html>
