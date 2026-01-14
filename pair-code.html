@@ -3,977 +3,331 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SILA AI - WhatsApp Pair Code Generator</title>
+    <title>SILA AI - WhatsApp Bot Pairing</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-        }
-
-        body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #000000;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
-            align-items: center;
             justify-content: center;
+            align-items: center;
             padding: 20px;
-            position: relative;
-            overflow-x: hidden;
         }
-
-        /* Matrix-like background effect */
-        .matrix-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: -2;
-            opacity: 0.1;
-            background: 
-                radial-gradient(circle at 20% 30%, #667eea22 0%, transparent 50%),
-                radial-gradient(circle at 80% 70%, #764ba222 0%, transparent 50%),
-                radial-gradient(circle at 40% 80%, #4f46e522 0%, transparent 50%);
-        }
-
-        /* Glowing particles */
-        .particles {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: -1;
-        }
-
-        .particle {
-            position: absolute;
-            width: 2px;
-            height: 2px;
-            background: #667eea;
-            border-radius: 50%;
-            box-shadow: 0 0 10px #667eea, 0 0 20px #667eea;
-            animation: float 15s infinite linear;
-        }
-
-        @keyframes float {
-            0% {
-                transform: translateY(100vh) translateX(0);
-                opacity: 0;
-            }
-            10% {
-                opacity: 1;
-            }
-            90% {
-                opacity: 1;
-            }
-            100% {
-                transform: translateY(-100px) translateX(100px);
-                opacity: 0;
-            }
-        }
-
+        
         .container {
-            background: rgba(10, 10, 15, 0.95);
+            background: white;
             border-radius: 20px;
-            padding: 40px;
-            max-width: 600px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             width: 100%;
+            max-width: 800px;
+            overflow: hidden;
+            animation: fadeIn 0.8s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .header {
+            background: linear-gradient(90deg, #4f46e5, #7c3aed);
+            color: white;
+            padding: 30px;
             text-align: center;
-            border: 1px solid rgba(102, 126, 234, 0.3);
-            box-shadow: 
-                0 0 50px rgba(102, 126, 234, 0.2),
-                inset 0 0 20px rgba(102, 126, 234, 0.1);
-            position: relative;
-            overflow: hidden;
-            backdrop-filter: blur(10px);
         }
-
-        /* Neon border effect */
-        .container::before {
-            content: '';
-            position: absolute;
-            top: -2px;
-            left: -2px;
-            right: -2px;
-            bottom: -2px;
-            background: linear-gradient(45deg, #667eea, #764ba2, #4f46e5, #667eea);
-            border-radius: 22px;
-            z-index: -1;
-            animation: neon-border 3s linear infinite;
-            background-size: 400% 400%;
-        }
-
-        .container::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(10, 10, 15, 0.95);
-            border-radius: 20px;
-            z-index: -1;
-        }
-
-        @keyframes neon-border {
-            0%, 100% {
-                background-position: 0% 50%;
-                filter: hue-rotate(0deg);
-            }
-            50% {
-                background-position: 100% 50%;
-                filter: hue-rotate(90deg);
-            }
-        }
-
-        .logo-container {
-            position: relative;
-            margin-bottom: 20px;
-        }
-
-        .logo {
-            width: 100px;
-            height: 100px;
-            background: linear-gradient(135deg, #000000, #1a1a2e);
-            border-radius: 50%;
-            margin: 0 auto;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 40px;
-            font-weight: bold;
-            color: #667eea;
-            box-shadow: 
-                0 0 30px rgba(102, 126, 234, 0.5),
-                inset 0 0 20px rgba(102, 126, 234, 0.2);
-            border: 2px solid rgba(102, 126, 234, 0.5);
-            position: relative;
-            overflow: hidden;
-            animation: logo-glow 2s ease-in-out infinite alternate;
-        }
-
-        .logo::before {
-            content: '';
-            position: absolute;
-            width: 150%;
-            height: 150%;
-            background: linear-gradient(45deg, transparent, rgba(102, 126, 234, 0.1), transparent);
-            animation: logo-rotate 4s linear infinite;
-        }
-
-        @keyframes logo-rotate {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        @keyframes logo-glow {
-            0% {
-                box-shadow: 
-                    0 0 30px rgba(102, 126, 234, 0.5),
-                    inset 0 0 20px rgba(102, 126, 234, 0.2);
-            }
-            100% {
-                box-shadow: 
-                    0 0 50px rgba(102, 126, 234, 0.8),
-                    inset 0 0 30px rgba(102, 126, 234, 0.3);
-            }
-        }
-
-        .logo-text {
-            position: relative;
-            z-index: 2;
-            text-shadow: 0 0 10px rgba(102, 126, 234, 0.8);
-        }
-
-        .title {
-            background: linear-gradient(135deg, #667eea, #764ba2, #4f46e5);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+        
+        .header h1 {
+            font-size: 2.5rem;
             margin-bottom: 10px;
-            font-size: 42px;
-            font-weight: 900;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            animation: title-shimmer 3s ease-in-out infinite;
-            text-shadow: 0 0 30px rgba(102, 126, 234, 0.3);
-        }
-
-        @keyframes title-shimmer {
-            0%, 100% { 
-                background-position: 0% 50%;
-                filter: hue-rotate(0deg);
-            }
-            50% { 
-                background-position: 100% 50%;
-                filter: hue-rotate(30deg);
-            }
-        }
-
-        .subtitle {
-            color: #8892b0;
-            margin-bottom: 30px;
-            font-size: 16px;
-            font-weight: 300;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
-
-        .form-group {
-            margin-bottom: 25px;
-            text-align: left;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: #ccd6f6;
-            font-weight: 600;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .input-container {
-            position: relative;
-        }
-
-        .country-code {
-            position: absolute;
-            left: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #667eea;
-            font-weight: 600;
-            font-size: 18px;
-            pointer-events: none;
-            z-index: 2;
-            text-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
-        }
-
-        input[type="tel"] {
-            width: 100%;
-            padding: 18px 20px 18px 60px;
-            border: 2px solid rgba(102, 126, 234, 0.3);
-            border-radius: 12px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            background: rgba(20, 20, 30, 0.8);
-            color: #ccd6f6;
-            font-weight: 500;
-            letter-spacing: 1px;
-        }
-
-        input[type="tel"]::placeholder {
-            color: #667eea;
-            opacity: 0.6;
-        }
-
-        input[type="tel"]:focus {
-            outline: none;
-            border-color: #667eea;
-            background: rgba(30, 30, 45, 0.9);
-            box-shadow: 
-                0 0 0 3px rgba(102, 126, 234, 0.2),
-                0 0 30px rgba(102, 126, 234, 0.3);
-            transform: translateY(-2px);
-        }
-
-        /* Button Styles */
-        .btn {
-            background: linear-gradient(135deg, #000000, #1a1a2e);
-            color: #667eea;
-            border: 2px solid #667eea;
-            padding: 18px 30px;
-            border-radius: 12px;
-            font-size: 18px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            width: 100%;
-            margin-bottom: 20px;
-            position: relative;
-            overflow: hidden;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            text-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
-        }
-
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.2), transparent);
-            transition: 0.5s;
-        }
-
-        .btn:hover::before {
-            left: 100%;
-        }
-
-        .btn:hover {
-            background: linear-gradient(135deg, #1a1a2e, #000000);
-            box-shadow: 
-                0 0 30px rgba(102, 126, 234, 0.4),
-                inset 0 0 20px rgba(102, 126, 234, 0.1);
-            transform: translateY(-3px);
-            color: #764ba2;
-        }
-
-        .btn:active {
-            transform: translateY(-1px);
-        }
-
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        /* Loading Animation */
-        .loading {
-            display: none;
-            margin: 30px 0;
-        }
-
-        .spinner {
-            width: 60px;
-            height: 60px;
-            border: 4px solid rgba(102, 126, 234, 0.1);
-            border-top: 4px solid #667eea;
-            border-right: 4px solid #764ba2;
-            border-bottom: 4px solid #4f46e5;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-            box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .loading p {
-            color: #667eea;
-            font-weight: 600;
-            letter-spacing: 1px;
-            text-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
-        }
-
-        /* Results Display */
-        .result-container {
-            display: none;
-            margin-top: 30px;
-            animation: slideDown 0.5s ease-out;
-        }
-
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .codes-header {
-            color: #667eea;
-            margin-bottom: 20px;
-            font-size: 24px;
-            font-weight: 700;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
-
-        .codes-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-
-        @media (max-width: 480px) {
-            .codes-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .code-box {
-            background: rgba(20, 20, 30, 0.8);
-            border: 2px solid #667eea;
-            border-radius: 12px;
-            padding: 20px;
-            font-size: 24px;
-            font-weight: 900;
-            color: #667eea;
-            letter-spacing: 4px;
-            text-align: center;
-            transition: all 0.3s ease;
-            box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .code-box:hover {
-            background: rgba(102, 126, 234, 0.1);
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.5);
-        }
-
-        .code-box::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.2), transparent);
-            transition: 0.5s;
-        }
-
-        .code-box:hover::before {
-            left: 100%;
-        }
-
-        .code-number {
-            position: absolute;
-            top: 5px;
-            left: 10px;
-            font-size: 12px;
-            color: #764ba2;
-            font-weight: 600;
-        }
-
-        /* Instructions Panel */
-        .instructions {
-            background: rgba(20, 20, 30, 0.8);
-            padding: 25px;
-            border-radius: 15px;
-            margin-top: 30px;
-            text-align: left;
-            border: 1px solid rgba(102, 126, 234, 0.3);
-            box-shadow: 0 0 20px rgba(102, 126, 234, 0.1);
-        }
-
-        .instructions h3 {
-            color: #667eea;
-            margin-bottom: 20px;
-            font-size: 18px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
             display: flex;
             align-items: center;
-            gap: 10px;
-        }
-
-        .instructions h3 i {
-            font-size: 20px;
-        }
-
-        .instructions ol {
-            color: #8892b0;
-            line-height: 1.8;
-            padding-left: 20px;
-        }
-
-        .instructions li {
-            margin-bottom: 12px;
-            padding-left: 10px;
-            position: relative;
-        }
-
-        .instructions li::before {
-            content: '→';
-            color: #667eea;
-            position: absolute;
-            left: -20px;
-            font-weight: bold;
-        }
-
-        /* Footer */
-        .footer {
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(102, 126, 234, 0.3);
-            color: #8892b0;
-            font-size: 14px;
-        }
-
-        .tech-stack {
-            display: flex;
             justify-content: center;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-top: 15px;
+            gap: 15px;
         }
-
-        .tech-badge {
-            background: rgba(102, 126, 234, 0.1);
-            color: #667eea;
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            border: 1px solid rgba(102, 126, 234, 0.3);
-            transition: all 0.3s ease;
+        
+        .content {
+            padding: 40px;
         }
-
-        .tech-badge:hover {
-            background: rgba(102, 126, 234, 0.2);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        
+        .pair-section {
+            text-align: center;
+            margin-bottom: 30px;
         }
-
-        /* Session Info */
-        .session-info {
-            background: rgba(20, 20, 30, 0.8);
-            padding: 20px;
-            border-radius: 12px;
-            margin-top: 20px;
-            border: 1px solid rgba(102, 126, 234, 0.3);
-        }
-
-        .session-info p {
-            color: #8892b0;
-            margin: 5px 0;
-            font-size: 14px;
-        }
-
-        .session-info strong {
-            color: #667eea;
-        }
-
-        /* Copy Button */
-        .copy-btn {
-            background: linear-gradient(135deg, #000000, #1a1a2e);
-            color: #667eea;
-            border: 2px solid #667eea;
-            padding: 12px 25px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .copy-btn:hover {
-            background: rgba(102, 126, 234, 0.1);
-            box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
-        }
-
-        /* Status Messages */
-        .status-message {
+        
+        .phone-input {
+            width: 100%;
             padding: 15px;
+            font-size: 1.1rem;
+            border: 2px solid #e5e7eb;
             border-radius: 10px;
             margin-bottom: 20px;
+            transition: border-color 0.3s;
+        }
+        
+        .phone-input:focus {
+            outline: none;
+            border-color: #4f46e5;
+        }
+        
+        .btn {
+            background: linear-gradient(90deg, #4f46e5, #7c3aed);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1rem;
             font-weight: 600;
-            display: none;
-            animation: fadeIn 0.5s ease;
+            cursor: pointer;
+            transition: transform 0.3s;
+            width: 100%;
         }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        
+        .btn:hover {
+            transform: translateY(-2px);
         }
-
-        .status-success {
-            background: rgba(34, 197, 94, 0.1);
-            color: #4ade80;
-            border: 1px solid rgba(34, 197, 94, 0.3);
+        
+        .result-box {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 10px;
+            border-left: 4px solid #4f46e5;
+            text-align: left;
         }
-
-        .status-error {
-            background: rgba(239, 68, 68, 0.1);
-            color: #f87171;
-            border: 1px solid rgba(239, 68, 68, 0.3);
+        
+        .code-display {
+            font-family: monospace;
+            font-size: 1.2rem;
+            background: #1f2937;
+            color: #10b981;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            text-align: center;
+            letter-spacing: 2px;
         }
-
-        .status-info {
-            background: rgba(59, 130, 246, 0.1);
-            color: #60a5fa;
-            border: 1px solid rgba(59, 130, 246, 0.3);
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 10px;
         }
-
-        /* Responsive Design */
-        @media (max-width: 600px) {
-            .container {
-                padding: 30px 20px;
-                margin: 10px;
-            }
-            
-            .title {
-                font-size: 32px;
-            }
-            
-            .logo {
-                width: 80px;
-                height: 80px;
-                font-size: 32px;
-            }
-            
-            .btn {
-                padding: 15px 20px;
-                font-size: 16px;
-            }
-            
-            .code-box {
-                font-size: 20px;
-                padding: 15px;
-            }
+        
+        .status-online {
+            background: #10b981;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .links {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .link-btn {
+            padding: 12px 25px;
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            text-decoration: none;
+            color: #374151;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .link-btn:hover {
+            border-color: #4f46e5;
+            color: #4f46e5;
+        }
+        
+        .instructions {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
+            text-align: left;
+        }
+        
+        .instructions ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+        
+        .instructions li {
+            margin-bottom: 10px;
         }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <!-- Matrix Background -->
-    <div class="matrix-bg"></div>
-    
-    <!-- Particles -->
-    <div class="particles" id="particles"></div>
-
     <div class="container">
-        <!-- Logo -->
-        <div class="logo-container">
-            <div class="logo">
-                <div class="logo-text">S</div>
+        <div class="header">
+            <h1>
+                <i class="fas fa-robot"></i>
+                SILA AI BOT
+                <span class="status-indicator status-online"></span>
+            </h1>
+            <p>Advanced WhatsApp Bot with Auto-Reconnect</p>
+        </div>
+        
+        <div class="content">
+            <div class="pair-section">
+                <h2><i class="fas fa-mobile-alt"></i> Pair Your WhatsApp Number</h2>
+                <p>Enter your WhatsApp number with country code to generate pairing codes</p>
+                
+                <input type="tel" 
+                       class="phone-input" 
+                       id="phoneNumber" 
+                       placeholder="+255789661031"
+                       pattern="\+[0-9]{10,15}">
+                
+                <button class="btn" onclick="pairWhatsApp()">
+                    <i class="fas fa-link"></i> Generate Pairing Codes
+                </button>
+                
+                <div id="result" class="result-box" style="display: none;">
+                    <h3><i class="fas fa-key"></i> Pairing Status</h3>
+                    <div id="statusMessage"></div>
+                    <div id="codeContainer"></div>
+                </div>
             </div>
-        </div>
-
-        <!-- Title -->
-        <h1 class="title">SILA AI</h1>
-        <p class="subtitle">8-Digit Pair Code Generator</p>
-
-        <!-- Status Messages -->
-        <div class="status-message" id="statusMessage"></div>
-
-        <!-- Phone Input Form -->
-        <div class="form-group">
-            <label for="phoneNumber"><i class="fas fa-phone"></i> WhatsApp Number</label>
-            <div class="input-container">
-                <span class="country-code">+</span>
-                <input 
-                    type="tel" 
-                    id="phoneNumber" 
-                    placeholder="255789661031" 
-                    required
-                    pattern="[0-9]{10,15}"
-                    title="Enter your WhatsApp number without +"
-                    maxlength="15"
-                >
-            </div>
-        </div>
-
-        <button class="btn" id="generateBtn" onclick="generateCodes()">
-            <i class="fas fa-key"></i> Generate 8 Pairing Codes
-        </button>
-
-        <!-- Loading Animation -->
-        <div class="loading" id="loading">
-            <div class="spinner"></div>
-            <p>Generating 8-digit codes...</p>
-        </div>
-
-        <!-- Results Container -->
-        <div class="result-container" id="resultContainer">
-            <h2 class="codes-header"><i class="fas fa-lock"></i> Your 8 Pairing Codes</h2>
             
-            <div class="codes-grid" id="codesGrid">
-                <!-- Codes will be inserted here -->
+            <div class="instructions">
+                <h3><i class="fas fa-info-circle"></i> How to Pair:</h3>
+                <ol>
+                    <li>Enter your WhatsApp number with country code (e.g., +255789661031)</li>
+                    <li>Click "Generate Pairing Codes" button</li>
+                    <li>You will receive 8-digit pairing codes</li>
+                    <li>Open WhatsApp on your phone</li>
+                    <li>Go to Settings → Linked Devices → Link a Device</li>
+                    <li>Enter the codes one by one when prompted</li>
+                    <li>Bot will auto-connect and join groups/channels</li>
+                </ol>
             </div>
-
-            <div class="session-info" id="sessionInfo">
-                <!-- Session info will be inserted here -->
+            
+            <div class="links">
+                <a href="https://chat.whatsapp.com/IdGNaKt80DEBqirc2ek4ks" 
+                   class="link-btn" 
+                   target="_blank">
+                    <i class="fab fa-whatsapp"></i> Join Group
+                </a>
+                <a href="https://whatsapp.com/channel/0029VbBG4gfISTkCpKxyMH02" 
+                   class="link-btn" 
+                   target="_blank">
+                    <i class="fas fa-broadcast-tower"></i> Follow Channel
+                </a>
+                <a href="mailto:owner@example.com" 
+                   class="link-btn">
+                    <i class="fas fa-envelope"></i> Contact Owner
+                </a>
             </div>
-
-            <button class="copy-btn" onclick="copyAllCodes()">
-                <i class="fas fa-copy"></i> Copy All Codes
-            </button>
-        </div>
-
-        <!-- Instructions -->
-        <div class="instructions">
-            <h3><i class="fas fa-info-circle"></i> How to Connect</h3>
-            <ol>
-                <li>Enter your WhatsApp number (without +)</li>
-                <li>Click "Generate 8 Pairing Codes"</li>
-                <li>8 unique codes will be generated</li>
-                <li>Open WhatsApp on your phone</li>
-                <li>Go to Settings → Linked Devices</li>
-                <li>Tap "Link a Device"</li>
-                <li>Enter codes ONE BY ONE when prompted</li>
-                <li>After 8 codes, bot will auto-connect</li>
-                <li>Auto features start working immediately</li>
-            </ol>
-            <p style="color: #667eea; margin-top: 15px; font-size: 12px;">
-                <i class="fas fa-exclamation-triangle"></i> 
-                <strong>Important:</strong> Enter codes in order. Codes expire in 10 minutes.
-            </p>
-        </div>
-
-        <!-- Footer -->
-        <div class="footer">
-            <p>Powered by <strong style="color: #667eea;">SILA TECH</strong> | Owner: +255789661031</p>
-            <div class="tech-stack">
-                <span class="tech-badge">WhatsApp API</span>
-                <span class="tech-badge">MongoDB</span>
-                <span class="tech-badge">Node.js</span>
-                <span class="tech-badge">Baileys</span>
-                <span class="tech-badge">WebSocket</span>
-            </div>
-            <p style="margin-top: 15px; font-size: 12px; color: #667eea;">
-                <i class="fas fa-shield-alt"></i> Secure Connection | Auto-Reconnect | 24/7 Online
-            </p>
         </div>
     </div>
 
     <script>
-        // Create particles
-        function createParticles() {
-            const particlesContainer = document.getElementById('particles');
-            const particleCount = 50;
+        async function pairWhatsApp() {
+            const phoneNumber = document.getElementById('phoneNumber').value;
+            const resultDiv = document.getElementById('result');
+            const statusMessage = document.getElementById('statusMessage');
+            const codeContainer = document.getElementById('codeContainer');
             
-            for (let i = 0; i < particleCount; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                
-                // Random position
-                particle.style.left = Math.random() * 100 + 'vw';
-                particle.style.top = Math.random() * 100 + 'vh';
-                
-                // Random size
-                const size = Math.random() * 3 + 1;
-                particle.style.width = size + 'px';
-                particle.style.height = size + 'px';
-                
-                // Random animation delay
-                particle.style.animationDelay = Math.random() * 15 + 's';
-                
-                // Random color
-                const colors = ['#667eea', '#764ba2', '#4f46e5'];
-                particle.style.background = colors[Math.floor(Math.random() * colors.length)];
-                
-                particlesContainer.appendChild(particle);
-            }
-        }
-
-        // Generate 8-digit codes
-        async function generateCodes() {
-            const phoneInput = document.getElementById('phoneNumber');
-            const phoneNumber = phoneInput.value.trim();
-            
-            // Validation
-            if (!phoneNumber || phoneNumber.length < 10 || phoneNumber.length > 15) {
-                showStatus('Please enter a valid WhatsApp number (10-15 digits)', 'error');
-                phoneInput.focus();
+            if (!phoneNumber || !phoneNumber.match(/^\+[0-9]{10,15}$/)) {
+                alert('Please enter a valid phone number with country code (e.g., +255789661031)');
                 return;
             }
-
-            // Show loading
-            const loading = document.getElementById('loading');
-            const generateBtn = document.getElementById('generateBtn');
-            loading.style.display = 'block';
-            generateBtn.disabled = true;
-            generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
-
+            
+            resultDiv.style.display = 'block';
+            statusMessage.innerHTML = '<p><i class="fas fa-spinner fa-spin"></i> Generating pairing codes...</p>';
+            codeContainer.innerHTML = '';
+            
             try {
-                // Call backend API
-                const response = await fetch('/code/pair', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ phone: `+${phoneNumber}` })
-                });
-
+                const response = await fetch(`/code?number=${encodeURIComponent(phoneNumber)}`);
                 const data = await response.json();
-
-                if (data.success) {
-                    // Display codes
-                    displayCodes(data.codes, data.sessionId, phoneNumber);
-                    showStatus('✅ 8 Pairing codes generated successfully!', 'success');
-                } else {
-                    showStatus(data.error || 'Failed to generate codes', 'error');
+                
+                if (data.status === 'pairing_code_sent') {
+                    statusMessage.innerHTML = `
+                        <p style="color: #10b981;">
+                            <i class="fas fa-check-circle"></i> Pairing code generated successfully!
+                        </p>
+                        <p>Enter this code in your WhatsApp:</p>
+                    `;
+                    
+                    codeContainer.innerHTML = `
+                        <div class="code-display">${data.code}</div>
+                        <p><strong>Instructions:</strong></p>
+                        <ol>
+                            <li>Open WhatsApp on your phone</li>
+                            <li>Go to Settings → Linked Devices</li>
+                            <li>Tap "Link a Device"</li>
+                            <li>Enter the code: <strong>${data.code}</strong></li>
+                            <li>Wait for bot to connect automatically</li>
+                        </ol>
+                    `;
+                    
+                } else if (data.status === 'connected') {
+                    statusMessage.innerHTML = `
+                        <p style="color: #10b981;">
+                            <i class="fas fa-check-circle"></i> ${data.message}
+                        </p>
+                        <p>Bot is now connected and ready!</p>
+                    `;
+                    
+                } else if (data.status === 'already_connected') {
+                    statusMessage.innerHTML = `
+                        <p style="color: #f59e0b;">
+                            <i class="fas fa-exclamation-triangle"></i> ${data.message}
+                        </p>
+                        <p>This number is already connected to the bot.</p>
+                    `;
+                    
+                } else if (data.status === 'error') {
+                    statusMessage.innerHTML = `
+                        <p style="color: #ef4444;">
+                            <i class="fas fa-exclamation-circle"></i> ${data.message}
+                        </p>
+                        <p>Please try again or contact support.</p>
+                    `;
+                    
+                } else if (data.status === 'timeout') {
+                    statusMessage.innerHTML = `
+                        <p style="color: #f59e0b;">
+                            <i class="fas fa-clock"></i> ${data.message}
+                        </p>
+                        <p>The connection timed out. Please try again.</p>
+                    `;
                 }
+                
             } catch (error) {
                 console.error('Error:', error);
-                showStatus('Network error. Please try again.', 'error');
-            } finally {
-                // Hide loading
-                loading.style.display = 'none';
-                generateBtn.disabled = false;
-                generateBtn.innerHTML = '<i class="fas fa-key"></i> Generate 8 Pairing Codes';
-            }
-        }
-
-        // Display codes in grid
-        function displayCodes(codes, sessionId, phoneNumber) {
-            const codesGrid = document.getElementById('codesGrid');
-            const resultContainer = document.getElementById('resultContainer');
-            const sessionInfo = document.getElementById('sessionInfo');
-            
-            // Clear previous codes
-            codesGrid.innerHTML = '';
-            
-            // Add each code to grid
-            codes.forEach((code, index) => {
-                const codeBox = document.createElement('div');
-                codeBox.className = 'code-box';
-                codeBox.innerHTML = `
-                    <div class="code-number">${index + 1}</div>
-                    ${code}
+                statusMessage.innerHTML = `
+                    <p style="color: #ef4444;">
+                        <i class="fas fa-exclamation-circle"></i> Network error occurred
+                    </p>
+                    <p>Please check your connection and try again.</p>
                 `;
-                codeBox.onclick = () => copyCode(code, index + 1);
-                codesGrid.appendChild(codeBox);
-            });
-            
-            // Show session info
-            sessionInfo.innerHTML = `
-                <p><strong><i class="fas fa-id-card"></i> Session ID:</strong> ${sessionId}</p>
-                <p><strong><i class="fas fa-phone"></i> Phone:</strong> +${phoneNumber}</p>
-                <p><strong><i class="fas fa-clock"></i> Generated:</strong> ${new Date().toLocaleTimeString()}</p>
-                <p><strong><i class="fas fa-exclamation-triangle"></i> Note:</strong> Enter codes in WhatsApp Linked Devices</p>
-            `;
-            
-            // Show results
-            resultContainer.style.display = 'block';
-            
-            // Auto-scroll to codes
-            resultContainer.scrollIntoView({ behavior: 'smooth' });
-            
-            // Start checking session status
-            startSessionCheck(sessionId);
-        }
-
-        // Copy single code
-        function copyCode(code, number) {
-            navigator.clipboard.writeText(code).then(() => {
-                showStatus(`✅ Code ${number} copied: ${code}`, 'success');
-                
-                // Visual feedback
-                const codeBoxes = document.querySelectorAll('.code-box');
-                codeBoxes[number - 1].style.background = 'rgba(102, 126, 234, 0.2)';
-                setTimeout(() => {
-                    codeBoxes[number - 1].style.background = '';
-                }, 500);
-            }).catch(err => {
-                showStatus('Failed to copy code', 'error');
-            });
-        }
-
-        // Copy all codes
-        function copyAllCodes() {
-            const codeBoxes = document.querySelectorAll('.code-box');
-            let allCodes = '';
-            
-            codeBoxes.forEach((box, index) => {
-                const code = box.textContent.trim();
-                allCodes += `${index + 1}. ${code}\n`;
-            });
-            
-            navigator.clipboard.writeText(allCodes).then(() => {
-                showStatus('✅ All 8 codes copied to clipboard!', 'success');
-            }).catch(err => {
-                showStatus('Failed to copy codes', 'error');
-            });
-        }
-
-        // Show status message
-        function showStatus(message, type) {
-            const statusEl = document.getElementById('statusMessage');
-            statusEl.textContent = message;
-            statusEl.className = `status-message status-${type}`;
-            statusEl.style.display = 'block';
-            
-            // Auto-hide after 5 seconds
-            setTimeout(() => {
-                statusEl.style.display = 'none';
-            }, 5000);
-        }
-
-        // Check session status
-        async function checkSessionStatus(sessionId) {
-            try {
-                const response = await fetch(`/code/status/${sessionId}`);
-                const data = await response.json();
-                
-                if (data.success) {
-                    const statusEl = document.querySelector('#sessionInfo p:last-child');
-                    if (statusEl) {
-                        const statusText = data.status === 'active' ? '✅ Connected' : 
-                                         data.status === 'completed' ? '🔄 Pairing Complete' : 
-                                         '⏳ Pending';
-                        statusEl.innerHTML = `<strong><i class="fas fa-signal"></i> Status:</strong> ${statusText}`;
-                        
-                        if (data.status === 'active' || data.status === 'completed') {
-                            clearInterval(statusCheckInterval);
-                        }
-                    }
-                }
-            } catch (error) {
-                console.error('Status check error:', error);
             }
         }
-
-        // Start session status checking
-        let statusCheckInterval;
-        function startSessionCheck(sessionId) {
-            if (statusCheckInterval) clearInterval(statusCheckInterval);
-            
-            statusCheckInterval = setInterval(() => {
-                checkSessionStatus(sessionId);
-            }, 5000); // Check every 5 seconds
-            
-            // Initial check
-            checkSessionStatus(sessionId);
-        }
-
-        // Initialize page
-        document.addEventListener('DOMContentLoaded', () => {
-            createParticles();
-            
-            // Auto-focus on phone input
-            document.getElementById('phoneNumber').focus();
-            
-            // Enter key to submit
-            document.getElementById('phoneNumber').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    generateCodes();
-                }
-            });
-            
-            // Load stats
-            loadStats();
-        });
-
-        // Load statistics
-        async function loadStats() {
-            try {
-                const response = await fetch('/code/stats');
-                const data = await response.json();
-                
-                if (data.success) {
-                    console.log('Bot Stats:', data.stats);
-                }
-            } catch (error) {
-                console.error('Stats load error:', error);
-            }
-        }
+        
+        // Auto-focus on input
+        document.getElementById('phoneNumber').focus();
     </script>
 </body>
 </html>
